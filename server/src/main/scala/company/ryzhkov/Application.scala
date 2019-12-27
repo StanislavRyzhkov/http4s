@@ -9,15 +9,18 @@ import org.http4s.server.blaze._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-
 object Application extends StreamApp[IO] {
   val helloWorldService: HttpService[IO] = HttpService[IO] {
     case GET -> Root / "hello" / name =>
       Ok(s"Hello, $name.")
   }
 
-  override def stream(args: List[String], requestShutdown: IO[Unit]): Stream[IO, ExitCode] = BlazeBuilder[IO]
-    .bindHttp(8080, "localhost")
-    .mountService(helloWorldService, "/")
-    .serve
+  override def stream(
+      args: List[String],
+      requestShutdown: IO[Unit]
+  ): Stream[IO, ExitCode] =
+    BlazeBuilder[IO]
+      .bindHttp(8080, "localhost")
+      .mountService(helloWorldService, "/")
+      .serve
 }
