@@ -20,6 +20,7 @@ lazy val common = (project in file("."))
       "org.http4s" %% "http4s-circe" % http4sVersion,
       "io.circe" %% "circe-generic" % "0.11.2",
       "io.circe" %% "circe-literal" % "0.11.2",
+      "org.mongodb.scala" %% "mongo-scala-driver" % "2.7.0",
       "ch.qos.logback" % "logback-classic" % "1.1.3" % Runtime
     ),
     scalacOptions ++= Seq(
