@@ -10,6 +10,9 @@ import org.http4s.dsl.io._
 import org.http4s.implicits._
 import org.http4s.server.blaze._
 import org.http4s.{EntityDecoder, HttpRoutes, Request, Response}
+import scala.concurrent.ExecutionContext.Implicits.global
+
+import scala.concurrent.Future
 
 object Application extends IOApp {
 
@@ -17,6 +20,12 @@ object Application extends IOApp {
   case class User(name: String)
 
   val hello = Hello("Stas")
+
+  val f = Future(1)
+
+  val g = IO.fromFuture(IO(f))
+
+
 
   implicit val helloDecoder: EntityDecoder[IO, Hello] = jsonOf[IO, Hello]
 
