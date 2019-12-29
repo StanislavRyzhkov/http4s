@@ -4,7 +4,9 @@ version := "0.1"
 
 scalaVersion := "2.12.10"
 
-val http4sVersion = "0.19.0"
+val http4sVersion = "0.20.15"
+
+resolvers += Resolver.sonatypeRepo("snapshots")
 
 lazy val common = (project in file("."))
   .enablePlugins(ScalafmtPlugin)
@@ -14,12 +16,15 @@ lazy val common = (project in file("."))
     libraryDependencies ++= Seq(
       "org.http4s" %% "http4s-dsl" % http4sVersion,
       "org.http4s" %% "http4s-blaze-server" % http4sVersion,
-      "org.http4s" %% "http4s-blaze-client" % http4sVersion
-//      "ch.qos.logback" % "logback-classic" % "1.1.3" % Runtime
+      "org.http4s" %% "http4s-blaze-client" % http4sVersion,
+      "org.http4s" %% "http4s-circe" % http4sVersion,
+      "io.circe" %% "circe-generic" % "0.11.2",
+      "io.circe" %% "circe-literal" % "0.11.2",
+      "ch.qos.logback" % "logback-classic" % "1.1.3" % Runtime
     ),
     scalacOptions ++= Seq(
-      "-feature", "-language:implicitConversions",
-      "-Ypartial-unification"
+      "-Ypartial-unification",
+      "-feature", "-language:implicitConversions"
     ),
     mainClass in (Compile, run) := Some("company.ryzhkov.Application"),
     mainClass in (assembly) := Some("company.ryzhkov.Application"),

@@ -1,42 +1,51 @@
 package company.ryzhkov
 
+import cats.data.Kleisli
 import cats.effect._
-import org.http4s._
+import cats.implicits._
+import io.circe.generic.auto._
+import io.circe.syntax._
+import org.http4s.circe._
 import org.http4s.dsl.io._
+import org.http4s.implicits._
+import org.http4s.server.blaze._
+import org.http4s.{EntityDecoder, HttpRoutes, Request, Response}
 
-import scala.concurrent.ExecutionContext.Implicits.global
+object Application extends IOApp {
 
-object Application extends App {
-  implicit val cs: ContextShift[IO] = IO.contextShift(global)
-  implicit val timer: Timer[IO] = IO.timer(global)
+  case class Hello(name: String)
+  case class User(name: String)
 
-  case class Tweet(id: Int, message: String)
+  val hello = Hello("Stas")
 
-  implicit def tweetEncoder: EntityEncoder[IO, Tweet] = ???
-  // tweetEncoder: org.http4s.EntityEncoder[cats.effect.IO,Tweet]
+  implicit val helloDecoder: EntityDecoder[IO, Hello] = jsonOf[IO, Hello]
 
-  implicit def tweetsEncoder: EntityEncoder[IO, Seq[Tweet]] = ???
-  // tweetsEncoder: org.http4s.EntityEncoder[cats.effect.IO,Seq[Tweet]]
+  val helloWorldService: Kleisli[IO, Request[IO], Response[IO]] =
+    HttpRoutes
+      .of[IO] {
+        case GET -> Root / "hello" / name =>
+          Ok(s"Hello, $name.")
+        case GET -> Root / "hey" => Ok(hello.asJson)
+        case req @ POST -> Root / "hello" =>
+          for {
+            h <- req.as[Hello]
+            resp <- Ok(h.name)
+          } yield (resp)
 
-  val tweet = Tweet(1, "YES")
+        case req @ POST -> Root / "bar" =>
+          for {
+            a <- req.as[Hello]
+            res <- Ok(a.name)
+          } yield (res)
+      }
+      .orNotFound
 
-  def getTweet(tweetId: Int): IO[Tweet] = IO(tweet)
-  // getTweet: (tweetId: Int)cats.effect.IO[Tweet]
-
-  def getPopularTweets: IO[Seq[Tweet]] = IO(List(tweet))
-  // getPopularTweets: ()cats.effect.IO[Seq[Tweet]]
-
-  val helloWorldService = HttpRoutes.of[IO] {
-    case GET -> Root / "hello" / name =>
-      Ok(s"Hello, $name.")
-  }
-
-  val tweetService = HttpRoutes.of[IO] {
-    case GET -> Root / "tweets" / "popular" =>
-      getPopularTweets
-        .flatMap(Ok(_))
-    case GET -> Root / "tweets" / IntVar(tweetId) =>
-      getTweet(tweetId)
-        .flatMap(Ok(_))
-  }
+  def run(args: List[String]): IO[ExitCode] =
+    BlazeServerBuilder[IO]
+      .bindHttp(8080, "localhost")
+      .withHttpApp(helloWorldService)
+      .serve
+      .compile
+      .drain
+      .as(ExitCode.Success)
 }
