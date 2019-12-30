@@ -20,6 +20,20 @@ object Main extends App {
     5
   }
 
+
+  val k = for {
+    _ <- Future(1)
+    _ <- Future(2)
+    n <- Future(3)
+  } yield n
+
+  Future(1)
+    .flatMap(_ => Future(2))
+    .flatMap(_ => Future(3))
+
+
+
+
 //  val e = IO.fromFuture(IO(f))
 
 //  e.unsafeRunAsync {

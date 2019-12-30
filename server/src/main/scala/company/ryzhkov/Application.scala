@@ -36,10 +36,13 @@ object Application extends IOApp {
           Ok(s"Hello, $name.")
         case GET -> Root / "hey" => Ok(hello.asJson)
         case req @ POST -> Root / "hello" =>
+          val token = req.headers.find(e => e.name.toString() == "Authorization")
+          val o = IO(req).map(e => e.headers.find(e => e.name.toString() == ""))
+          val x = req.as[Hello]
           for {
-            h <- req.as[Hello]
-            resp <- Ok(h.name)
-          } yield (resp)
+            _ <- req.as[Hello]
+            res <- Ok("")
+          } yield res
 
         case req @ POST -> Root / "bar" =>
           for {
@@ -48,6 +51,27 @@ object Application extends IOApp {
           } yield (res)
       }
       .orNotFound
+
+//  val helloWorldService: Kleisli[IO, Request[IO], Response[IO]] =
+//    HttpRoutes
+//      .of[IO] {
+//        case GET -> Root / "hello" / name =>
+//          Ok(s"Hello, $name.")
+//        case GET -> Root / "hey" => Ok(hello.asJson)
+//        case req @ POST -> Root / "hello" =>
+//          val f = req
+//          for {
+//            h <- f.as[Hello]
+//            resp <- Ok("")
+//          } yield (resp)
+//
+//        case req @ POST -> Root / "bar" =>
+//          for {
+//            a <- req.as[Hello]
+//            res <- Ok(a.name)
+//          } yield (res)
+//      }
+//      .orNotFound
 
   def run(args: List[String]): IO[ExitCode] =
     BlazeServerBuilder[IO]
