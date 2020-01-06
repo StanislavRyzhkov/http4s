@@ -3,6 +3,9 @@ package company.ryzhkov
 import cats.data.Kleisli
 import cats.effect._
 import cats.implicits._
+import company.ryzhkov.db.TextRepositoryImpl
+import company.ryzhkov.model.TextInfo
+import company.ryzhkov.service.TextService
 import io.circe.generic.auto._
 import io.circe.syntax._
 import org.http4s.circe._
@@ -10,8 +13,9 @@ import org.http4s.dsl.io._
 import org.http4s.implicits._
 import org.http4s.server.blaze._
 import org.http4s.{EntityDecoder, HttpRoutes, Request, Response}
-import scala.concurrent.ExecutionContext.Implicits.global
+import io.circe.generic.auto._
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object Application extends IOApp {
@@ -21,13 +25,20 @@ object Application extends IOApp {
 
   val hello = Hello("Stas")
 
-  val f = Future(1)
-
-  val g = IO.fromFuture(IO(f))
-
-
 
   implicit val helloDecoder: EntityDecoder[IO, Hello] = jsonOf[IO, Hello]
+  implicit val textInfoDecoder: EntityDecoder[IO, TextInfo] = jsonOf[IO, TextInfo]
+  implicit val textInfoSeqDecoder: EntityDecoder[IO, Seq[TextInfo]] = jsonOf[IO, Seq[TextInfo]]
+
+  val textRepository = new TextRepositoryImpl()
+  val textService = new TextService(textRepository)
+
+  val textController: Kleisli[IO, Request[IO], Response[IO]] =
+    HttpRoutes.of[IO] {
+      case GET -> Root / "api" / "articles" / "all" =>
+        textService.findAllArticles.flatMap(e => Ok(e.asJson))
+    }
+    .orNotFound
 
   val helloWorldService: Kleisli[IO, Request[IO], Response[IO]] =
     HttpRoutes
@@ -36,7 +47,8 @@ object Application extends IOApp {
           Ok(s"Hello, $name.")
         case GET -> Root / "hey" => Ok(hello.asJson)
         case req @ POST -> Root / "hello" =>
-          val token = req.headers.find(e => e.name.toString() == "Authorization")
+          val token =
+            req.headers.find(e => e.name.toString() == "Authorization")
           val o = IO(req).map(e => e.headers.find(e => e.name.toString() == ""))
           val x = req.as[Hello]
           for {
@@ -77,6 +89,7 @@ object Application extends IOApp {
     BlazeServerBuilder[IO]
       .bindHttp(8080, "localhost")
       .withHttpApp(helloWorldService)
+      .withHttpApp(textController)
       .serve
       .compile
       .drain

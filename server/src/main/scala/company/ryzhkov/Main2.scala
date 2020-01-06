@@ -16,15 +16,14 @@ object Main2 extends App {
 
   val io = IO.fromFuture(IO(Future {
 
-
     Thread.sleep(3000)
     throw new Exception("OOPS")
 
     println(3)
   }))
 
-  io.unsafeRunAsync{
-    case Right(_) => ()
+  io.unsafeRunAsync {
+    case Right(_)    => ()
     case Left(value) => println(value.getMessage)
   }
   println("END")

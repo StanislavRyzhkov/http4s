@@ -20,7 +20,6 @@ object Main extends App {
     5
   }
 
-
   val k = for {
     _ <- Future(1)
     _ <- Future(2)
@@ -30,9 +29,6 @@ object Main extends App {
   Future(1)
     .flatMap(_ => Future(2))
     .flatMap(_ => Future(3))
-
-
-
 
 //  val e = IO.fromFuture(IO(f))
 
@@ -44,7 +40,7 @@ object Main extends App {
 //  val g = io.start
   io.unsafeRunAsync {
     case Right(value) => println(value)
-    case Left(value) => println(value)
+    case Left(value)  => println(value)
   }
 //  g.unsafeRunSync()
 
