@@ -64,3 +64,13 @@ case class Text(
     textComponents: Seq[TextComponent],
     replies: Seq[Reply]
 )
+
+sealed trait TextFilter
+
+case class EnglishTitle(englishTitle: String) extends TextFilter
+
+case class Kind(kind: String) extends TextFilter
+
+sealed trait TextSorting
+
+case object Created extends TextSorting

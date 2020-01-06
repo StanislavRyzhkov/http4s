@@ -6,6 +6,7 @@ import cats.implicits._
 import company.ryzhkov.db.TextRepositoryImpl
 import company.ryzhkov.model.TextInfo
 import company.ryzhkov.service.TextService
+import io.circe.Json
 import io.circe.generic.auto._
 import io.circe.syntax._
 import org.http4s.circe._
@@ -14,6 +15,7 @@ import org.http4s.implicits._
 import org.http4s.server.blaze._
 import org.http4s.{EntityDecoder, HttpRoutes, Request, Response}
 import io.circe.generic.auto._
+import org.http4s.circe.CirceEntityEncoder._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -25,20 +27,32 @@ object Application extends IOApp {
 
   val hello = Hello("Stas")
 
-
   implicit val helloDecoder: EntityDecoder[IO, Hello] = jsonOf[IO, Hello]
-  implicit val textInfoDecoder: EntityDecoder[IO, TextInfo] = jsonOf[IO, TextInfo]
-  implicit val textInfoSeqDecoder: EntityDecoder[IO, Seq[TextInfo]] = jsonOf[IO, Seq[TextInfo]]
+//  implicit val textInfoDecoder: EntityDecoder[IO, TextInfo] = jsonOf[IO, TextInfo]
+//  implicit val textInfoSeqDecoder: EntityDecoder[IO, Seq[TextInfo]] = jsonOf[IO, Seq[TextInfo]]
 
   val textRepository = new TextRepositoryImpl()
   val textService = new TextService(textRepository)
 
+//  implicit def format(articles: Seq[TextInfo]): Json = articles.asJson
+
   val textController: Kleisli[IO, Request[IO], Response[IO]] =
-    HttpRoutes.of[IO] {
-      case GET -> Root / "api" / "articles" / "all" =>
-        textService.findAllArticles.flatMap(e => Ok(e.asJson))
-    }
-    .orNotFound
+    HttpRoutes
+      .of[IO] {
+        case GET -> Root / "api" / "articles" / "all" =>
+          textService.findAllArticles.flatMap(Ok(_))
+
+        case GET -> Root / "api" / "articles" / "two" =>
+//          textService.findTwoLastArticles.flatMap(Ok(_))
+          textService.findTwoLastArticles.flatMap(Ok(_))
+
+        case GET -> Root / "api" / "articles" / "detail" / engTitle =>
+          textService.findFullTextByEnglishTitle(engTitle).flatMap {
+            case Some(value) => Ok(value)
+            case None        => NotFound()
+          }
+      }
+      .orNotFound
 
   val helloWorldService: Kleisli[IO, Request[IO], Response[IO]] =
     HttpRoutes
