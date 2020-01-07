@@ -43,14 +43,13 @@ object Application extends IOApp {
           textService.findAllArticles.flatMap(Ok(_))
 
         case GET -> Root / "api" / "articles" / "two" =>
-//          textService.findTwoLastArticles.flatMap(Ok(_))
           textService.findTwoLastArticles.flatMap(Ok(_))
 
         case GET -> Root / "api" / "articles" / "detail" / engTitle =>
-          textService.findFullTextByEnglishTitle(engTitle).flatMap {
-            case Some(value) => Ok(value)
-            case None        => NotFound()
-          }
+          textService
+            .findFullTextByEnglishTitle(engTitle)
+            .flatMap(Ok(_))
+            .handleErrorWith(_ => NotFound())
       }
       .orNotFound
 

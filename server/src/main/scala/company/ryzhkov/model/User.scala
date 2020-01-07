@@ -49,12 +49,3 @@ case class UpdatePassword(
     newPassword1: String,
     newPassword2: String
 )
-
-sealed trait UserFilter
-
-case class Username(username: String) extends UserFilter
-
-case class UsernameAndStatus(username: String, status: String)
-    extends UserFilter
-
-case class Email(email: String) extends UserFilter
