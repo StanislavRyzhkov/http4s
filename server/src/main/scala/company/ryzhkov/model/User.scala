@@ -1,5 +1,7 @@
 package company.ryzhkov.model
 
+import company.ryzhkov.util.Validator
+import company.ryzhkov.util.ValidatorImplicits._
 import org.bson.types.ObjectId
 
 object User {
@@ -26,7 +28,21 @@ case class Register(
     email: String,
     password1: String,
     password2: String
-)
+) {
+  def validate: Register =
+    Validator[Register](this)
+      .check(_.username.validateMaxLength(100))(
+        "Имя пользователя от 1 до 100 символов"
+      )
+      .check(_.username.validateMinLength(1))(
+        "Имя пользователя от 1 до 100 символов"
+      )
+      .check(_.email.validateEmail)("Некорреткный email")
+      .check(_.password1.validateMinLength(5))("Пароль не менее 5 символов")
+      .check(_.password1.validateMaxLength(100))("Пароль не более 100 символов")
+      .check(r => r.password1 == r.password2)("Пароли не совпадают")
+      .create()
+}
 
 case class Account(
     username: String,

@@ -28,8 +28,8 @@ class TextService(textRepository: TextRepository, userService: UserService)
       createReply: CreateReply
   ): IO[UpdateResult] = {
     (for {
-      text   <- textRepository.findByEnglishTitle(createReply.englishTitle)
-      user   <- userService.findUserByHeader(optionHeader)
+      text <- textRepository.findByEnglishTitle(createReply.englishTitle)
+      user <- userService.findUserByHeader(optionHeader)
       result <- textRepository.updateByEnglishTitle(
         text.englishTitle,
         text.replies.+:(Reply(user.username, createReply.content, new Date()))

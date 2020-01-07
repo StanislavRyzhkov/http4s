@@ -1,7 +1,7 @@
 package company.ryzhkov.service
 
 import cats.effect.IO
-import company.ryzhkov.model.{Register, User}
+import company.ryzhkov.model.{Auth, Register, User}
 import company.ryzhkov.repository.UserRepository
 import company.ryzhkov.util.Constants._
 import company.ryzhkov.util.{PasswordEncoder, TokenProvider}
@@ -21,6 +21,18 @@ class UserService(userRepository: UserRepository) extends PasswordEncoder {
       case _          => userRepository.save(User(username, email, encode(password)))
     }
   }
+
+  def authenticate(auth: Auth): IO[String] =
+    userRepository
+      .findByUsernameAndStatus(auth.username, "ACTIVE")
+      .handleErrorWith(
+        _ => IO.raiseError(new Exception(InvalidUsernameOrPassword))
+      )
+      .flatMap { user =>
+        if (decode(auth.password, user.password))
+          TokenProvider.createToken(user.username)
+        else IO.raiseError(new Exception(InvalidUsernameOrPassword))
+      }
 
   def findUserByHeader(optionHeader: Option[String]): IO[User] =
     TokenProvider
