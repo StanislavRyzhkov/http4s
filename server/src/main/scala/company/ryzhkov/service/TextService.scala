@@ -27,18 +27,14 @@ class TextService(textRepository: TextRepository, userService: UserService)
       optionHeader: Option[String],
       createReply: CreateReply
   ): IO[UpdateResult] = {
-    val result = for {
-      text <- textRepository.findByEnglishTitle(createReply.englishTitle)
-      user <- userService.findUserByHeader(optionHeader)
-    } yield {
-      val reply = Reply(user.username, createReply.content, new Date())
-      textRepository.updateByEnglishTitle(
+    (for {
+      text   <- textRepository.findByEnglishTitle(createReply.englishTitle)
+      user   <- userService.findUserByHeader(optionHeader)
+      result <- textRepository.updateByEnglishTitle(
         text.englishTitle,
-        text.replies.+:(reply)
+        text.replies.+:(Reply(user.username, createReply.content, new Date()))
       )
-    }
-    result
-      .flatMap(identity)
+    } yield result)
       .handleErrorWith(_ => IO.raiseError(new Exception(AccessDenied)))
   }
 

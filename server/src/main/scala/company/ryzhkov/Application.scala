@@ -3,6 +3,7 @@ package company.ryzhkov
 import cats.data.Kleisli
 import cats.effect._
 import cats.implicits._
+import company.ryzhkov.controller.UserController
 import company.ryzhkov.db.{TextRepositoryImpl, UserRepositoryImpl}
 import company.ryzhkov.model.{CreateReply, TextInfo}
 import company.ryzhkov.service.{TextService, UserService}
@@ -39,6 +40,8 @@ object Application extends IOApp {
   val userService = new UserService(userRepository)
   val textService = new TextService(textRepository, userService)
 
+  val userController = new UserController(userService)
+
 //  implicit def format(articles: Seq[TextInfo]): Json = articles.asJson
 
   val textController: Kleisli[IO, Request[IO], Response[IO]] =
@@ -59,11 +62,11 @@ object Application extends IOApp {
         case req @ POST -> Root / "api" / "articles" / "reply" =>
           val auth =
             req.headers.find(_.name.toString() == "Authorization").map(_.value)
-            req
-              .as[CreateReply]
-              .flatMap(e => textService.createReply(auth, e))
-              .flatMap(_ => Ok())
-              .handleErrorWith(e => BadRequest(e.getMessage))
+          req
+            .as[CreateReply]
+            .flatMap(e => textService.createReply(auth, e))
+            .flatMap(_ => Ok())
+            .handleErrorWith(e => BadRequest(e.getMessage))
 //              .handleError(e => Response(status = BadRequest))
 
 //            for {
@@ -124,6 +127,7 @@ object Application extends IOApp {
       .bindHttp(8080, "localhost")
       .withHttpApp(helloWorldService)
       .withHttpApp(textController)
+      .withHttpApp(userController.endPoint)
       .serve
       .compile
       .drain

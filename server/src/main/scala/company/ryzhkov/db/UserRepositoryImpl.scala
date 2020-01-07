@@ -54,16 +54,19 @@ class UserRepositoryImpl(implicit ec: ExecutionContext) extends UserRepository {
           set("secondName", secondName),
           set("phoneNumber", phoneNumber)
         )
-      ).toFuture()
+      )
+      .toFuture()
 
   override def updateByUsername(
       username: String,
       password: String
   ): IO[UpdateResult] =
     collection
-      .updateOne(equal("username", username), set("password", password)).toFuture()
+      .updateOne(equal("username", username), set("password", password))
+      .toFuture()
 
   override def deleteByUsername(username: String): IO[UpdateResult] =
     collection
-      .updateOne(equal("username", username), set("status", "INACTIVE")).toFuture()
+      .updateOne(equal("username", username), set("status", "INACTIVE"))
+      .toFuture()
 }

@@ -25,7 +25,8 @@ class TextRepositoryImpl(implicit ec: ExecutionContext) extends TextRepository {
       replies: Seq[Reply]
   ): IO[UpdateResult] =
     collection
-      .updateOne(equal("englishTitle", englishTitle), set("replies", replies)).toFuture()
+      .updateOne(equal("englishTitle", englishTitle), set("replies", replies))
+      .toFuture()
 
   override def findAllByKindSortedByCreatedDesc(
       kind: String
