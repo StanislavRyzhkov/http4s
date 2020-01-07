@@ -41,6 +41,9 @@ class UserService(userRepository: UserRepository) extends PasswordEncoder {
         userRepository.findByUsernameAndStatus(username, "ACTIVE")
       }
 
+  def findUsernameByHeader(optionHeader: Option[String]): IO[String] =
+    findUserByHeader(optionHeader).map(_.username)
+
   private def checkUsernameUnique(username: String): IO[Boolean] =
     userRepository
       .findByUsername(username)

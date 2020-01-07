@@ -2,6 +2,7 @@ package company.ryzhkov.controller
 
 import cats.data.Kleisli
 import cats.effect._
+import cats.implicits._
 import company.ryzhkov.model.{Auth, Message, Register}
 import company.ryzhkov.service.UserService
 import company.ryzhkov.util.HeaderReceiver
@@ -32,8 +33,14 @@ class UserController(userService: UserService) extends HeaderReceiver {
           req
             .as[Auth]
             .flatMap(userService.authenticate)
-            .flatMap(_ => Ok())
+            .flatMap(token => Ok(Message(token).asJson))
             .handleErrorWith(e => BadRequest(Message(e.getMessage).asJson))
+
+        case req @ GET -> Root / "api" / "user_area" / "username" =>
+          userService
+            .findUsernameByHeader(transform(req))
+            .flatMap(username => Ok(Message(username).asJson))
+            .handleError(_ => Response(Unauthorized))
       }
       .orNotFound
 }
