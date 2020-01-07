@@ -26,6 +26,6 @@ case class ExtendedString(string: String) {
 }
 
 object ValidatorImplicits {
-  implicit def string2Foo(string: String): ExtendedString =
+  implicit def string2ExtendedString(string: String): ExtendedString =
     ExtendedString(string)
 }
