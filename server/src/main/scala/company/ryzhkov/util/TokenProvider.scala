@@ -16,10 +16,10 @@ object TokenProvider {
   val expired = 2500000000L
 
   def createToken(username: String): IO[String] = IO {
-    val roles = Collections.singletonList("ROLE_USER")
+    val roles  = Collections.singletonList("ROLE_USER")
     val claims = Jwts.claims.setSubject(username)
     claims.put("roles", roles)
-    val now = new Date()
+    val now      = new Date()
     val validity = new Date(now.getTime + expired)
     Jwts.builder
       .setClaims(claims)

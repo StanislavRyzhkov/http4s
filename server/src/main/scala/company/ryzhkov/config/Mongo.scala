@@ -8,7 +8,7 @@ import org.mongodb.scala.bson.codecs.Macros._
 import org.mongodb.scala.{MongoClient, MongoCollection, MongoDatabase}
 
 object Mongo {
-  lazy val mongoClient: MongoClient = MongoClient("mongodb://localhost")
+  lazy val mongoClient: MongoClient       = MongoClient("mongodb://localhost")
   lazy val customCodecUser: CodecRegistry = fromProviders(classOf[User])
   lazy val customCodecText: CodecRegistry =
     fromProviders(classOf[Text], classOf[TextComponent], classOf[Reply])

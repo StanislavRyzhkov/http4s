@@ -7,8 +7,11 @@ import org.mongodb.scala.result.UpdateResult
 
 trait TextRepository {
   def save(text: Text): IO[Completed]
+
   def findByEnglishTitle(englishTitle: String): IO[Text]
+
   def findAllByKindSortedByCreatedDesc(kind: String): IO[Seq[Text]]
+
   def updateByEnglishTitle(
       englishTitle: String,
       replies: Seq[Reply]

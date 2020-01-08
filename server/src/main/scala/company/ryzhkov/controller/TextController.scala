@@ -24,17 +24,17 @@ class TextController(textService: TextService) extends HeaderReceiver {
 
       case GET -> Root / "articles" / "detail" / engTitle =>
         (for {
-          text <- textService findFullTextByEnglishTitle engTitle
+          text   <- textService findFullTextByEnglishTitle engTitle
           result <- Ok(text.asJson)
         } yield result).handleErrorWith(_ => NotFound())
 
       case req @ POST -> Root / "articles" / "reply" =>
         (for {
           authHeader <- transform(req)
-          reply <- req.as[CreateReply]
+          reply      <- req.as[CreateReply]
           validReply <- reply.validate
-          _ <- textService.createReply(authHeader, validReply)
-          result <- Ok(Message("Комментарий создан").asJson)
+          _          <- textService.createReply(authHeader, validReply)
+          result     <- Ok(Message("Комментарий создан").asJson)
         } yield result).handleErrorWith(e => BadRequest(e.getMessage))
     }
 }

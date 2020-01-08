@@ -13,7 +13,7 @@ class UserService(userRepository: UserRepository) extends PasswordEncoder {
     val Register(username, email, password, _) = register
     val tuple = for {
       usernameUnique <- checkUsernameUnique(username)
-      emailUnique <- checkEmailUnique(email)
+      emailUnique    <- checkEmailUnique(email)
     } yield (usernameUnique, emailUnique)
     tuple flatMap {
       case (false, _) => IO.raiseError(new Exception(UsernameAlreadyExists))
@@ -54,11 +54,11 @@ class UserService(userRepository: UserRepository) extends PasswordEncoder {
     for {
       username <- findUsernameByHeader(optionalHeader)
       updateResult <- userRepository.updateByUsername(
-        username,
-        updateAccount.firstName,
-        updateAccount.secondName,
-        updateAccount.phoneNumber
-      )
+                       username,
+                       updateAccount.firstName,
+                       updateAccount.secondName,
+                       updateAccount.phoneNumber
+                     )
     } yield updateResult
 
   private def checkUsernameUnique(username: String): IO[Boolean] =
