@@ -57,7 +57,12 @@ case class UpdateAccount(
     firstName: String,
     secondName: String,
     phoneNumber: String
-)
+) {
+  def validate: IO[UpdateAccount] =
+    Validator(this)
+      .check(_.firstName.validateMaxLength(3))("OOPS!")
+      .create()
+}
 
 case class DeleteAccount(username: String, password1: String, password2: String)
 

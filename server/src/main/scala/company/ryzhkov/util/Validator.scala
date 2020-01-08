@@ -3,11 +3,12 @@ package company.ryzhkov.util
 import java.util.regex.Pattern
 
 import cats.effect.IO
+import company.ryzhkov.exception.ValidationException
 
 case class Validator[A](obj: A) {
   def check(f: A => Boolean)(message: String): Validator[A] = {
     if (f(obj)) this
-    else throw new Exception(message)
+    else throw ValidationException(message)
   }
 
   def create(): IO[A] = IO(this.obj)

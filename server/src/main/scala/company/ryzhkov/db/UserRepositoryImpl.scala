@@ -5,10 +5,10 @@ import company.ryzhkov.config.Mongo
 import company.ryzhkov.model.User
 import company.ryzhkov.repository.UserRepository
 import company.ryzhkov.util.ApplicationImplicits._
+import company.ryzhkov.util.Constants.ObjectNotFound
 import org.mongodb.scala.model.Filters.{and, equal}
 import org.mongodb.scala.model.Updates.set
 import org.mongodb.scala.result.UpdateResult
-import company.ryzhkov.util.Constants.ObjectNotFound
 import org.mongodb.scala.{Completed, MongoCollection}
 
 import scala.concurrent.ExecutionContext
@@ -23,7 +23,9 @@ class UserRepositoryImpl(implicit ec: ExecutionContext) extends UserRepository {
     collection
       .find(equal("username", username))
       .head()
-      .map(e => if (e == null) throw new Exception(ObjectNotFound) else e)
+      .map(
+        e => if (e == null) throw new Exception(ObjectNotFound) else e
+      )
 
   override def findByUsernameAndStatus(
       username: String,
@@ -32,13 +34,17 @@ class UserRepositoryImpl(implicit ec: ExecutionContext) extends UserRepository {
     collection
       .find(and(equal("username", username), equal("status", status)))
       .head()
-      .map(e => if (e == null) throw new Exception(ObjectNotFound) else e)
+      .map(
+        e => if (e == null) throw new Exception(ObjectNotFound) else e
+      )
 
   override def findByEmail(email: String): IO[User] =
     collection
       .find(equal("email", email))
       .head()
-      .map(e => if (e == null) throw new Exception(ObjectNotFound) else e)
+      .map(
+        e => if (e == null) throw new Exception(ObjectNotFound) else e
+      )
 
   override def updateByUsername(
       username: String,

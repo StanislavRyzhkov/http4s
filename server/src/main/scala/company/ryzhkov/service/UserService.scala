@@ -1,11 +1,11 @@
 package company.ryzhkov.service
 
 import cats.effect.IO
-import company.ryzhkov.model.{Auth, Register, User}
+import company.ryzhkov.model.{Account, Auth, Register, UpdateAccount, User}
 import company.ryzhkov.repository.UserRepository
 import company.ryzhkov.util.Constants._
 import company.ryzhkov.util.{PasswordEncoder, TokenProvider}
-import org.mongodb.scala.Completed
+import org.mongodb.scala.{Completed, result}
 
 class UserService(userRepository: UserRepository) extends PasswordEncoder {
 
@@ -44,6 +44,23 @@ class UserService(userRepository: UserRepository) extends PasswordEncoder {
   def findUsernameByHeader(optionHeader: Option[String]): IO[String] =
     findUserByHeader(optionHeader).map(_.username)
 
+  def findAccountByHeader(optionHeader: Option[String]): IO[Account] =
+    findUserByHeader(optionHeader).map(userToAccount)
+
+  def updateAccount(
+      optionalHeader: Option[String],
+      updateAccount: UpdateAccount
+  ): IO[result.UpdateResult] =
+    for {
+      username <- findUsernameByHeader(optionalHeader)
+      updateResult <- userRepository.updateByUsername(
+        username,
+        updateAccount.firstName,
+        updateAccount.secondName,
+        updateAccount.phoneNumber
+      )
+    } yield updateResult
+
   private def checkUsernameUnique(username: String): IO[Boolean] =
     userRepository
       .findByUsername(username)
@@ -55,4 +72,13 @@ class UserService(userRepository: UserRepository) extends PasswordEncoder {
       .findByEmail(email)
       .map(_ => false)
       .handleErrorWith(_ => IO(true))
+
+  private def userToAccount(user: User): Account =
+    Account(
+      user.username,
+      user.email,
+      user.firstName,
+      user.secondName,
+      user.phoneNumber
+    )
 }

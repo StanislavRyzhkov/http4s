@@ -12,9 +12,6 @@ import org.http4s.server.blaze._
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object Application extends IOApp {
-  implicit val cs: ContextShift[IO] = IO.contextShift(global)
-  override implicit val timer: Timer[IO] = IO.timer(global)
-
   val textRepository = new TextRepositoryImpl()
   val userRepository = new UserRepositoryImpl()
 

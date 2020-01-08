@@ -17,14 +17,14 @@ class TextController(textService: TextService) extends HeaderReceiver {
   val endPoint: HttpRoutes[IO] = HttpRoutes
     .of[IO] {
       case GET -> Root / "articles" / "all" =>
-        textService.findAllArticles.flatMap(e => Ok(e.asJson))
+        textService.findAllArticles.flatMap(articles => Ok(articles.asJson))
 
       case GET -> Root / "articles" / "two" =>
-        textService.findTwoLastArticles.flatMap(e => Ok(e.asJson))
+        textService.findTwoLastArticles.flatMap(articles => Ok(articles.asJson))
 
       case GET -> Root / "articles" / "detail" / engTitle =>
         (for {
-          text <- textService.findFullTextByEnglishTitle(engTitle)
+          text <- textService findFullTextByEnglishTitle engTitle
           result <- Ok(text.asJson)
         } yield result).handleErrorWith(_ => NotFound())
 
@@ -32,7 +32,8 @@ class TextController(textService: TextService) extends HeaderReceiver {
         (for {
           authHeader <- transform(req)
           reply <- req.as[CreateReply]
-          _ <- textService.createReply(authHeader, reply)
+          validReply <- reply.validate
+          _ <- textService.createReply(authHeader, validReply)
           result <- Ok(Message("Комментарий создан").asJson)
         } yield result).handleErrorWith(e => BadRequest(e.getMessage))
     }
