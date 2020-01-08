@@ -1,5 +1,6 @@
 package company.ryzhkov.model
 
+import cats.effect.IO
 import company.ryzhkov.util.Validator
 import company.ryzhkov.util.ValidatorImplicits._
 import org.bson.types.ObjectId
@@ -29,7 +30,7 @@ case class Register(
     password1: String,
     password2: String
 ) {
-  def validate: Register =
+  def validate: IO[Register] =
     Validator[Register](this)
       .check(_.username.validateMaxLength(100))(
         "Имя пользователя от 1 до 100 символов"
