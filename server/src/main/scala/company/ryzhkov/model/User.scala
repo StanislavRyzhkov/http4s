@@ -5,6 +5,14 @@ import company.ryzhkov.util.Validator
 import company.ryzhkov.util.ValidatorImplicits._
 import org.bson.types.ObjectId
 
+object Constants {
+  val Username_1_100         = "Имя пользователя от 1 до 100 символов"
+  val InvalidEmail           = "Некорректный email"
+  val Password_5             = "Пароль не менее 5 символов"
+  val Password_100           = "Пароль не более 100 символов"
+  val Passwords_Do_Not_Match = "Пароли не совпадают"
+}
+
 object User {
   def apply(username: String, email: String, password: String): User =
     User(new ObjectId(), username, email, password)
@@ -30,19 +38,18 @@ case class Register(
     password1: String,
     password2: String
 ) {
-  def validate: IO[Register] =
+  def validate: IO[Register] = {
+    import Constants._
+
     Validator[Register](this)
-      .check(_.username.validateMaxLength(100))(
-        "Имя пользователя от 1 до 100 символов"
-      )
-      .check(_.username.validateMinLength(1))(
-        "Имя пользователя от 1 до 100 символов"
-      )
-      .check(_.email.validateEmail)("Некорреткный email")
-      .check(_.password1.validateMinLength(5))("Пароль не менее 5 символов")
-      .check(_.password1.validateMaxLength(100))("Пароль не более 100 символов")
-      .check(r => r.password1 == r.password2)("Пароли не совпадают")
+      .check(_.username.validateMaxLength(max = 100))(Username_1_100)
+      .check(_.username.validateMinLength(min = 1))(Username_1_100)
+      .check(_.email.validateEmail)(InvalidEmail)
+      .check(_.password1.validateMinLength(min = 5))(Password_5)
+      .check(_.password1.validateMaxLength(max = 100))(Password_100)
+      .check(r => r.password1 == r.password2)(Passwords_Do_Not_Match)
       .create()
+  }
 }
 
 case class Account(
@@ -64,7 +71,19 @@ case class UpdateAccount(
       .create()
 }
 
-case class DeleteAccount(username: String, password1: String, password2: String)
+case class DeleteAccount(
+    username: String,
+    password1: String,
+    password2: String
+) {
+  def validate: IO[DeleteAccount] = {
+    import Constants._
+
+    Validator(this)
+      .check(da => da.password1 == da.password2)(Passwords_Do_Not_Match)
+      .create()
+  }
+}
 
 case class UpdatePassword(
     oldPassword: String,

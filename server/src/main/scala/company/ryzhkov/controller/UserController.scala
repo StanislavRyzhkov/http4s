@@ -1,9 +1,8 @@
 package company.ryzhkov.controller
 
 import cats.effect._
-import cats.implicits._
-import company.ryzhkov.exception.ValidationException
-import company.ryzhkov.model.{Auth, Message, Register, UpdateAccount}
+import company.ryzhkov.exception.{BadCredentialsException, ValidationException}
+import company.ryzhkov.model._
 import company.ryzhkov.service.UserService
 import company.ryzhkov.util.HeaderReceiver
 import io.circe.generic.auto._
@@ -18,6 +17,8 @@ class UserController(userService: UserService) extends HeaderReceiver {
   implicit val authDecoder: EntityDecoder[IO, Auth] = jsonOf[IO, Auth]
   implicit val updateAccountDecoder: EntityDecoder[IO, UpdateAccount] =
     jsonOf[IO, UpdateAccount]
+  implicit val deleteAccountDecoder: EntityDecoder[IO, DeleteAccount] =
+    jsonOf[IO, DeleteAccount]
 
   val endPoint: HttpRoutes[IO] =
     HttpRoutes
@@ -44,7 +45,7 @@ class UserController(userService: UserService) extends HeaderReceiver {
             optionHeader <- transform(req)
             username     <- userService findUsernameByHeader optionHeader
             result       <- Ok(Message(username).asJson)
-          } yield result).handleError(_ => Response(Unauthorized))
+          } yield result).handleErrorWith(_ => IO(Response(Unauthorized)))
 
         case req @ GET -> Root / "user_area" / "account" =>
           (for {
@@ -52,7 +53,7 @@ class UserController(userService: UserService) extends HeaderReceiver {
             account      <- userService findAccountByHeader optionHeader
             result       <- Ok(account.asJson)
           } yield result)
-            .handleError(_ => Response(Unauthorized))
+            .handleErrorWith(_ => IO(Response(Unauthorized)))
 
         case req @ PUT -> Root / "user_area" / "account" =>
           (for {
@@ -61,12 +62,25 @@ class UserController(userService: UserService) extends HeaderReceiver {
             validUpdateAccount <- updateAccount.validate
             _                  <- userService.updateAccount(optionHeader, validUpdateAccount)
             result             <- Ok(Message("Аккаунт обновлен").asJson)
-          } yield result)
-            .handleErrorWith {
-              case e: ValidationException =>
-                BadRequest(Message(e.message).asJson)
+          } yield result).handleErrorWith {
+            case e: ValidationException => BadRequest(Message(e.message).asJson)
+            case _                      => IO(Response(Unauthorized))
+          }
 
-              case _ => IO(Response(Unauthorized))
-            }
+        case req @ DELETE -> Root / "user_area" / "account" =>
+          (for {
+            optionHeader       <- transform(req)
+            deleteAccount      <- req.as[DeleteAccount]
+            validDeleteAccount <- deleteAccount.validate
+            _                  <- userService.deleteAccount(optionHeader, validDeleteAccount)
+            result             <- Ok("Аккаунт удален")
+          } yield result).handleErrorWith {
+            case e: ValidationException => BadRequest(Message(e.message).asJson)
+
+            case bc: BadCredentialsException =>
+              BadRequest(Message(bc.message).asJson)
+
+            case _ => IO(Response(Unauthorized))
+          }
       }
 }

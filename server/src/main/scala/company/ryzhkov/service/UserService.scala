@@ -1,10 +1,12 @@
 package company.ryzhkov.service
 
 import cats.effect.IO
-import company.ryzhkov.model.{Account, Auth, Register, UpdateAccount, User}
+import company.ryzhkov.exception.BadCredentialsException
+import company.ryzhkov.model._
 import company.ryzhkov.repository.UserRepository
 import company.ryzhkov.util.Constants._
 import company.ryzhkov.util.{PasswordEncoder, TokenProvider}
+import org.mongodb.scala.result.UpdateResult
 import org.mongodb.scala.{Completed, result}
 
 class UserService(userRepository: UserRepository) extends PasswordEncoder {
@@ -35,11 +37,10 @@ class UserService(userRepository: UserRepository) extends PasswordEncoder {
       }
 
   def findUserByHeader(optionHeader: Option[String]): IO[User] =
-    TokenProvider
-      .getUsername(optionHeader)
-      .flatMap { username =>
-        userRepository.findByUsernameAndStatus(username, "ACTIVE")
-      }
+    for {
+      username <- TokenProvider.getUsername(optionHeader)
+      user     <- userRepository.findByUsernameAndStatus(username, "ACTIVE")
+    } yield user
 
   def findUsernameByHeader(optionHeader: Option[String]): IO[String] =
     findUserByHeader(optionHeader).map(_.username)
@@ -59,6 +60,23 @@ class UserService(userRepository: UserRepository) extends PasswordEncoder {
                        updateAccount.secondName,
                        updateAccount.phoneNumber
                      )
+    } yield updateResult
+
+  def deleteAccount(
+      optionHeader: Option[String],
+      deleteAccount: DeleteAccount
+  ): IO[UpdateResult] =
+    for {
+      user <- findUserByHeader(optionHeader);
+      _ <- IO {
+            if (deleteAccount.username != user.username)
+              throw BadCredentialsException(InvalidUsernameOrPassword)
+          }
+      _ <- IO {
+            if (!decode(deleteAccount.password1, user.password))
+              throw BadCredentialsException(InvalidUsernameOrPassword)
+          }
+      updateResult <- userRepository.deleteByUsername(user.username)
     } yield updateResult
 
   private def checkUsernameUnique(username: String): IO[Boolean] =
