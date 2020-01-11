@@ -5,6 +5,10 @@ import java.util.regex.Pattern
 import cats.effect.IO
 import company.ryzhkov.exception.ValidationException
 
+trait Valid[A] {
+  def validate: IO[A]
+}
+
 case class Validator[A](obj: A) {
   def check(f: A => Boolean)(message: String): Validator[A] = {
     if (f(obj)) this

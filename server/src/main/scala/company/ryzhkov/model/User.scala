@@ -1,7 +1,7 @@
 package company.ryzhkov.model
 
 import cats.effect.IO
-import company.ryzhkov.util.Validator
+import company.ryzhkov.util.{Valid, Validator}
 import company.ryzhkov.util.ValidatorImplicits._
 import org.bson.types.ObjectId
 
@@ -89,4 +89,6 @@ case class UpdatePassword(
     oldPassword: String,
     newPassword1: String,
     newPassword2: String
-)
+) extends Valid[UpdatePassword] {
+  override def validate = ???
+}
