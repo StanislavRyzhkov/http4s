@@ -21,11 +21,14 @@ lazy val common = (project in file("."))
       "io.circe" %% "circe-generic" % "0.11.2",
       "io.circe" %% "circe-literal" % "0.11.2",
       "org.mongodb.scala" %% "mongo-scala-driver" % "2.7.0",
-      "ch.qos.logback" % "logback-classic" % "1.1.3" % Runtime
+      "ch.qos.logback" % "logback-classic" % "1.1.3" % Runtime,
+      "at.favre.lib" % "bcrypt" % "0.8.0",
+      "io.jsonwebtoken" % "jjwt" % "0.9.1"
     ),
     scalacOptions ++= Seq(
       "-Ypartial-unification",
-      "-feature", "-language:implicitConversions"
+      "-feature",
+      "-language:implicitConversions"
     ),
     mainClass in (Compile, run) := Some("company.ryzhkov.Application"),
     mainClass in (assembly) := Some("company.ryzhkov.Application"),
